@@ -1,0 +1,29 @@
+- name: "Устанновка и настройка zabbix-agent"
+  hosts: "{{ host }}"
+  become: yes
+  vars: 
+     - user: "{{ host_id}}"
+  tasks:
+     - name: "Установка zabbix-agent"
+       apt: 
+           name: zabbix-agent
+     - name: "Настройка хоста"
+       lineinfile:
+           dest: /etc/zabbix/zabbix_agentd.conf
+           regexp: "^Server=$"
+           line: "Server={{ user }}"
+     - name: "Создание папки zabbix"
+       file:
+         path: /var/log/zabbix
+         state: directory
+
+     - name: "Создание файла lasttimefile"
+       file:
+         path: /var/log/zabbix/lasttimefile
+         state: touch
+    
+
+     - name: "Перезагрузка сервиса"
+       service:
+          name: zabbix-agent
+          state: restarted

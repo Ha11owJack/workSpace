@@ -1,0 +1,6 @@
+Description= Логгинг заббикс сервиса
+
+[Service]
+ExecStart=/bin/sh -c '/usr/local/bin/status_zab start'
+ExecStop=/bin/sh -c '/usr/local/bin/status_zab stop'
+Restart=always

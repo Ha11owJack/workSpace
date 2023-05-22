@@ -1,0 +1,46 @@
+- name: "Установка и настройка Хранилища Bacula"
+  hosts: "{{ host }}"
+  become: yes
+  vars: 
+      dir_n: "{{ hostname_dir }}"
+      ip_addr: "{{ ip_addr_sd}}"
+  tasks:            
+     - name: "Установка хранилища"
+       apt:
+          name: "{{ item.name }}"
+       with_items:
+         - { name: bacula-sd }
+         - { name: bacula-common-pgsql }
+
+     - name: "Копирование конфиг файла"
+       copy:
+          src: bacula-sd.conf
+          dest: /etc/bacula/bacula-sd.conf
+          owner: bacula
+          group: bacula
+          mode: '0644'
+     - name: "Изменение текста в файле"
+       replace:
+           dest: /etc/bacula/bacula-sd.conf
+           regexp: "{{ item.key }}"
+           replace: "{{ item.key_new }}"
+       loop:
+         - { key: '(.*)hostname_dir(.*)$', key_new: '\1{{ host }}\2' }
+         - { key: '\b(hostname_sd)\b', key_new: '{{ dir_n }}' }
+         - { key: '\b(ip_address_sd)\b', key_new: '{{ip_addr_sd}}' }
+     
+     - name: "Перезагрузка хранилища Bacula"
+       service:
+          name: bacula-sd
+          state: restarted
+
+     - name: "Проверка состояния хранилища Bacula"
+       service_facts:
+
+     - name: "Состояние сервиса хранилища Bacula"
+       debug:
+          msg: "{{ansible_facts.services['bacula-sd.service'].state}}"
+
+
+
+       

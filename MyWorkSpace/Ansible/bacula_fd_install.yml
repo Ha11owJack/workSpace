@@ -1,0 +1,61 @@
+- name: "Установка и настройка клиента Bacula"
+  hosts: "{{ host }}"
+  become: yes
+  tasks:    
+    - name: "Установка клиента Bacula"
+      apt: 
+         name: bacula-fd
+         state: latest
+    - name: "Копирование файла"
+      copy:
+        src: bacula-fd.conf
+        dest: /etc/bacula/bacula-fd.conf
+        owner: bacula
+        group: bacula
+        mode: '0644'
+    - name: "Изменение текста подпункта FileDaemon"
+      replace:
+        dest: /etc/bacula/bacula-fd.conf
+        before: "Director"
+        regexp: '^(.*)Name(.*)$'
+        replace: "\tName = {{ host }}-fd"
+
+    - name: "Изменение текста подпункта FileDaemon"
+      replace:
+        dest: /etc/bacula/bacula-fd.conf
+        before: "Director"
+        regexp: '^(.*)FDAddress(.*)$'
+        replace: "\tFDAddress = {{ ip_address_fd }} "
+
+    - name: "Изменение текста подпункта Director"
+      replace:
+        dest: /etc/bacula/bacula-fd.conf
+        after: 'Director'
+        regexp: '^(.*)Name(.*)$'
+        replace: '\tName = {{ hostname_dir }}-dir'
+        
+    - name: "Изменение текста подпункта Message"
+      replace:
+        dest: /etc/bacula/bacula-fd.conf
+        after: "Message"
+        regexp: '^(.*)Name(.*)$'
+        replace: '\tName = Standart'
+
+    - name: "Изменение текса подпункта Message"
+      replace:
+        dest: /etc/bacula/bacula-fd.conf
+        after: "Message"
+        regexp: '^(.*)director(.*)$'
+        replace: "\tdirector = {{ hostname_dir }}-dir = all, !skipped, !restored"
+    
+    - name: "Перезагрузка клиента Bacula"
+      service:
+          name: bacula-fd
+          state: restarted
+
+    - name: "Проверка состояния сервиса Bacula"
+      service_facts:
+
+    - name: "Состояние сервиса Bacula"
+      debug:
+       msg: "{{ansible_facts.services['bacula-fd.service'].state}}"

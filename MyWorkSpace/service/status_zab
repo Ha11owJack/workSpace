@@ -1,0 +1,10 @@
+#!/bin/sh
+if [[ $1 == "stop" ]]
+then
+   sed -i "s/Status[[:space:]]loop/Status\tstop/" /usr/local/bin/status.conf
+elif [[ $1 == "start" ]]
+then
+   sed -i "s/Status[[:space:]]stop/Status\tloop/" /usr/local/bin/status.conf
+   python /usr/local/bin/main.py
+fi
+
